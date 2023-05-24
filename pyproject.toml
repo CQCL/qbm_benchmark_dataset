@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "qbm-quimb"
+version = "0.1.0"
+description = "Quantum Boltzmann Machine Training with quimb"
+authors = ["Enrico Rinaldi <enrico.rinaldi@quantinuum.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+packages = [{include = "qbm_quimb"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+scipy = "^1.10.1"
+numba = "^0.57.0"
+numpy = "^1.24.3"
+cytoolz = "^0.12.1"
+tqdm = "^4.65.0"
+psutil = "^5.9.5"
+opt-einsum = "^3.3.0"
+autoray = "^0.6.3"
+networkx = "^3.1"
+matplotlib = "^3.7.1"
+quimb = "^1.5.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+jupyterlab = "^4.0.0"
+flake8 = "^6.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
