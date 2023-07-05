@@ -11,7 +11,7 @@ packages = [{include = "qbm_quimb"}]
 python = ">=3.10,<3.12"
 scipy = "^1.10.1"
 numba = "^0.57.0"
-numpy = "^1.24.3"
+numpy = "~1.23"
 cytoolz = "^0.12.1"
 tqdm = "^4.65.0"
 psutil = "^5.9.5"
@@ -20,6 +20,8 @@ autoray = "^0.6.3"
 networkx = "^3.1"
 matplotlib = "^3.7.1"
 quimb = "^1.5.0"
+joblib = "^1.3.1"
+qiskit = "^0.43.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
