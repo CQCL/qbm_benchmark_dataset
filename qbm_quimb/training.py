@@ -25,22 +25,22 @@ def qre(eta, h_qbm):
     
 
 def compute_grads(
-        h_i: list[np.ndarray], 
-        h_i_exp: list[float], 
-        rho: np.ndarray
+        ham_terms: list[qu.qarray], 
+        ham_expectations: list[float], 
+        rho: qu.qarray
     ) -> np.ndarray:
     """Compute gradients given a list of hamiltonian terms (operators)
 
     Args:
-        h_i (list[np.ndarray]): A list of hamiltonian terms
-        h_i_exp (list[float]): A list of hamiltonian expectation values
-        rho (np.ndarray): The QBM density matrix
+        ham_terms (list[np.ndarray]): A list of hamiltonian terms
+        ham_expectations (list[float]): A list of hamiltonian expectation values
+        rho (qu.qarray): The QBM density matrix
 
     Returns:
         np.ndarray: The array of the gradients
     """
     grads = []
-    for h, eta_expect in zip(h_i, h_i_exp):
+    for h, eta_expect in zip(ham_terms, ham_expectations):
         rho_expect = qu.expec(rho,h)
         grads.append(rho_expect-eta_expect)
     return np.array(grads)
@@ -48,38 +48,52 @@ def compute_grads(
     
 
 def training_qbm(
-        h_i: list[np.ndarray], 
-        h_i_exp: list[float],
-        params: np.ndarray, 
+        ham_terms: list[qu.qarray], 
+        ham_expectations: list[float],
+        target_eta: qu.qarray,
+        params: np.ndarray = None, 
         gamma: float = 0.2,
         epochs: int = 200, 
         eps: float = 1e-6
-    ) -> list[float]:
+    ) -> tuple[np.ndarray, list[np.ndarray], list[float]]:
     """Train QBM by computing gradients of relative entropy
 
     Args:
-        hi (list[np.ndarray]): A list of hamiltonian terms
-        h_i_exp (list[float]): A list of target hamiltonian expectation values
+        ham_terms (list[qu.qarray]): A list of hamiltonian terms
+        ham_expectations (list[float]): A list of target hamiltonian expectation values
+        target_eta (qu.qarray): Target density matrix
         params (np.ndarray): Parameters of QBM density matrix 
+        gamma (float): Learning rate
         epochs (int): The number of epochs in the training
         eps (float): Stop traninig when gradient gets smaller than eps
 
     Returns:
-        list[float]]: Maximum absolute gradients
+        np.ndarray: Parameters of the trained QBM desity matrix
+        list[np.ndarray]: Maximum absolute gradients
+        list[float]: A list of relative entropies
     """
     grad_hist = []
+    qre_hist = []
+    
+    if params == None:
+        new_params = np.zeros(len(ham_terms))
+    else:
+        new_params = params
 
     for i in range(epochs):
         # create qbm hamiltonians
-        qbm_tfim = 0
-        for param, h in zip(params, h_i):
+        qbm_tfim = 0.0
+        for param, h in zip(new_params, ham_terms):
             qbm_tfim += param * h
         qbm_tfim = qbm_tfim.real
+        qre_hist.append(qre(target_eta, qbm_tfim))
         # create qbm state
         rho = qu.thermal_state(qbm_tfim, -1.0)
         # grad and update
-        grads = compute_grads(h_i, h_i_exp, rho)
+        grads = compute_grads(ham_terms, ham_expectations, rho)
         grad_hist.append(np.abs(grads))
-        params = params - gamma * grads
+        new_params = new_params - gamma * grads
         if np.max(grad_hist[-1]) < eps:
             break
+
+    return new_params, grad_hist, qre_hist
