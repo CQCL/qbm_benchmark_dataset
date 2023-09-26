@@ -23,26 +23,40 @@ def qre(eta, h_qbm):
     return h-eta_stat+qu.log(z)
 
     
+def compute_expectations(
+        rho: qu.qarray,
+        operators: list[qu.qarray]
+    ) -> list[float]:
+    """Compute expectation values of operators w.r.t the density matrix rho
+
+    Args:
+        rho (qu.qarray): Density matrix
+        operators (list[qu.qarray]): A list of operators
+
+    Returns:
+        list[float]: A list of expectation values
+    """
+    expectations = []
+    for op in operators:
+        expectations.append(qu.expec(rho, op))
+    return expectations 
+
 
 def compute_grads(
-        ham_terms: list[qu.qarray], 
-        ham_expectations: list[float], 
-        rho: qu.qarray
+        qbm_expectations: list[float], 
+        target_expectations: list[float], 
     ) -> np.ndarray:
     """Compute gradients given a list of hamiltonian terms (operators)
 
     Args:
         ham_terms (list[np.ndarray]): A list of hamiltonian terms
-        ham_expectations (list[float]): A list of hamiltonian expectation values
-        rho (qu.qarray): The QBM density matrix
+        ham_expectations (list[float])s A list of hamiltonian expectation values
+        rho (qu.qarray): The QBM sdensity matrix
 
     Returns:
         np.ndarray: The array of the gradients
     """
-    grads = []
-    for h, eta_expect in zip(ham_terms, ham_expectations):
-        rho_expect = qu.expec(rho,h)
-        grads.append(rho_expect-eta_expect)
+    grads = [qbm-targ for (qbm,targ) in zip(qbm_expectations,target_expectations)]
     return np.array(grads)
 
     
