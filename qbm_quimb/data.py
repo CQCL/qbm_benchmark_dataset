@@ -3,27 +3,26 @@ Generate dataset that consists of expectation values of Hamiltonian terms
 with respect to density matrix.   
 """
 import quimb as qu
+from qbm_quimb import hamiltonians
 
-def tfim_gibbs_expect(
-        n: int,
-        jz: float,
-        bx: float,
+    
+def gibbs_expect(
         beta: float,
-        hamiltonian_terms: list[qu.qarray]
-    ) -> tuple[qu.qarray, list[float]]:
-    """_summary_
+        coeffs: list[float],
+        hamiltonian_ops: list[qu.qarray]
+    ) -> tuple[list[float], qu.qarray]:
+    """Create a density matrix for the Gibbs state and alculate thermal expectation values of operators
 
     Args:
-        n (int): Number of qubits
-        jz (float): 
-        bx (float): 
-        beta (float): 
-        hamiltonian_terms (list[qu.qarray]): A list of Hamitonian terms
+        beta (float): Inverse temperature
+        coeffs (list[float]): A list of coefficients
+        hamiltonian_terms (list[qu.qarray]): A list of operators contained in the Hamitonian
 
     Returns:
         list[float]: A list of expactation values of Hamiltonian terms
+        qu.qarray: Density matrix for the Gibbs state
     """
-    tfim = qu.ham_ising(n, jz, bx)
-    eta_tfim = qu.thermal_state(tfim, beta, precomp_func=False)
-    hamiltonian_expectations = [qu.expec(eta_tfim, h) for h in hamiltonian_terms]
-    return eta_tfim, hamiltonian_expectations
+    hamiltonian = hamiltonians.total_hamiltonian(hamiltonian_ops, coeffs)
+    rho = qu.thermal_state(hamiltonian, beta, precomp_func=False)
+    hamiltonian_expectations = [qu.expec(rho, op) for op in hamiltonian_ops]
+    return hamiltonian_expectations, rho

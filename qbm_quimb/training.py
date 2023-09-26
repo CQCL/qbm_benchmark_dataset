@@ -2,8 +2,11 @@
 Tools for training Quantum Boltzmann Machine with quantum relative entropy.
 """
 
+from pyexpat import model
 import quimb as qu
 import numpy as np
+
+from qbm_quimb import hamiltonians
 
 
 def qre(eta, h_qbm):
@@ -62,10 +65,10 @@ def compute_grads(
     
 
 def training_qbm(
-        ham_terms: list[qu.qarray], 
-        ham_expectations: list[float],
+        model_ham_ops: list[qu.qarray], 
+        target_ham_expectations: list[float],
         target_eta: qu.qarray,
-        params: np.ndarray = None, 
+        initial_params: np.ndarray = None, 
         gamma: float = 0.2,
         epochs: int = 200, 
         eps: float = 1e-6
@@ -73,8 +76,8 @@ def training_qbm(
     """Train QBM by computing gradients of relative entropy
 
     Args:
-        ham_terms (list[qu.qarray]): A list of hamiltonian terms
-        ham_expectations (list[float]): A list of target hamiltonian expectation values
+        model_ham_ops (list[qu.qarray]): A list of operators in the model Hamiltonian
+        target_ham_expectations (list[float]): A list of target hamiltonian expectation values
         target_eta (qu.qarray): Target density matrix
         params (np.ndarray): Parameters of QBM density matrix 
         gamma (float): Learning rate
@@ -86,28 +89,29 @@ def training_qbm(
         list[np.ndarray]: Maximum absolute gradients
         list[float]: A list of relative entropies
     """
-    grad_hist = []
+    max_grad_hist = []
     qre_hist = []
     
-    if params == None:
-        new_params = np.zeros(len(ham_terms))
+    if initial_params == None:
+        params = np.zeros(len(model_ham_ops))
     else:
-        new_params = params
+        params = initial_params
 
-    for i in range(epochs):
-        # create qbm hamiltonians
-        qbm_tfim = 0.0
-        for param, h in zip(new_params, ham_terms):
-            qbm_tfim += param * h
-        qbm_tfim = qbm_tfim.real
-        qre_hist.append(qre(target_eta, qbm_tfim))
+    for _ in range(epochs):
+        # create qbm hamiltonian
+        model_ham = hamiltonians.total_hamiltonian(model_ham_ops, params)
+        model_ham = model_ham.real
+
         # create qbm state
-        rho = qu.thermal_state(qbm_tfim, -1.0)
+        qbm_rho = qu.thermal_state(model_ham, 1.0)
+        qbm_expectations = compute_expectations(qbm_rho, model_ham_ops)
+        qre_hist.append(qre(target_eta, qbm_rho))
+
         # grad and update
-        grads = compute_grads(ham_terms, ham_expectations, rho)
-        grad_hist.append(np.abs(grads))
-        new_params = new_params - gamma * grads
-        if np.max(grad_hist[-1]) < eps:
+        grads = compute_grads(qbm_expectations, target_ham_expectations)
+        params = params - gamma * grads
+        max_grad_hist.append(np.max(np.abs(grads)))
+        if max_grad_hist[-1] < eps:
             break
 
-    return new_params, grad_hist, qre_hist
+    return params, max_grad_hist, qre_hist

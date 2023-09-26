@@ -15,51 +15,43 @@ rng = np.random.default_rng(seed=1)
  
 # Number of qubits
 n = 6
-# Inverse temperature
-beta = 1.0
-
-# Specify the Hamiltonian of the QBM
-# Here we consider the case where there is no model mismatch, i.e.,
-# the same Hamiltonian is used to generate the date and to model the QBM.
-ham_label = 0
-
 
 ########
 # DATA #
 ########
 
-match ham_label:
+# As an example, the Gibbs state of TF-Ising model (label=0) is take to generate data (expectation values)
+target_label = 0
+target_ham_ops = hamiltonians.hamiltonian_ops(n, target_label)
+target_params = [1.0,0.5]
+target_beta = 1.0
+
+target_expects, target_eta = data.gibbs_expect(
+    target_beta, 
+    target_params,
+    target_ham_ops
+)
     
-    case 0: # Transverse-field Ising model
 
-        target_jz = rng.normal()
-        target_bx = rng.normal()
-        target_params = [target_jz, target_bx]
-        target_ham_terms = hamiltonians.Hamiltonian_terms(n, ham_label)
+#############
+# QBM Model #
+#############
 
-        target_eta, target_expects = data.tfim_gibbs_expect(
-            n, 
-            target_jz, 
-            target_bx, 
-            beta, 
-            target_ham_terms
-        )
+ham_label = 0
+model_ham_ops = hamiltonians.hamiltonian_operators(n, ham_label)
 
 
 ################
 # QBM Taininig #
 ################
 
-ham_terms = target_ham_terms
-jz = rng.normal()
-bx = rng.normal()
-qbm_params = [jz, bx]
+initial_params = rng.normal(size=len(model_ham_ops))
 
-qbm_params, grads_hist, qre_hist = training.training_qbm(
-    ham_terms,
+qbm_params, max_grads_hist, qre_hist = training.training_qbm(
+    model_ham_ops,
     target_expects,
     target_eta,
-    params=qbm_params
+    initial_params=initial_params
 )
 
 
