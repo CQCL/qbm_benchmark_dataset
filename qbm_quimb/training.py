@@ -1,8 +1,6 @@
 """
 Tools for training Quantum Boltzmann Machine with quantum relative entropy.
 """
-
-from pyexpat import model
 import quimb as qu
 import numpy as np
 
@@ -23,13 +21,10 @@ def qre(eta, h_qbm):
     evals = qu.eigvalsh(h_qbm).clip(1e-300)
     z = np.sum(np.exp(evals))
     eta_stat = qu.expec(eta, h_qbm)
-    return h-eta_stat+qu.log(z)
+    return h - eta_stat + qu.log(z)
 
-    
-def compute_expectations(
-        rho: qu.qarray,
-        operators: list[qu.qarray]
-    ) -> list[float]:
+
+def compute_expectations(rho: qu.qarray, operators: list[qu.qarray]) -> list[float]:
     """Compute expectation values of operators w.r.t the density matrix rho
 
     Args:
@@ -42,13 +37,13 @@ def compute_expectations(
     expectations = []
     for op in operators:
         expectations.append(qu.expec(rho, op))
-    return expectations 
+    return expectations
 
 
 def compute_grads(
-        qbm_expectations: list[float], 
-        target_expectations: list[float], 
-    ) -> np.ndarray:
+    qbm_expectations: list[float],
+    target_expectations: list[float],
+) -> np.ndarray:
     """Compute gradients given a list of hamiltonian terms (operators)
 
     Args:
@@ -59,27 +54,26 @@ def compute_grads(
     Returns:
         np.ndarray: The array of the gradients
     """
-    grads = [qbm-targ for (qbm,targ) in zip(qbm_expectations,target_expectations)]
+    grads = [qbm - targ for (qbm, targ) in zip(qbm_expectations, target_expectations)]
     return np.array(grads)
 
-    
 
 def training_qbm(
-        model_ham_ops: list[qu.qarray], 
-        target_ham_expectations: list[float],
-        target_eta: qu.qarray,
-        initial_params: np.ndarray = None, 
-        learning_rate: float = 0.2,
-        epochs: int = 200, 
-        eps: float = 1e-6
-    ) -> tuple[np.ndarray, list[np.ndarray], list[float]]:
+    model_ham_ops: list[qu.qarray],
+    target_ham_expectations: list[float],
+    target_eta: qu.qarray,
+    initial_params: np.ndarray = None,
+    learning_rate: float = 0.2,
+    epochs: int = 200,
+    eps: float = 1e-6,
+) -> tuple[np.ndarray, list[np.ndarray], list[float]]:
     """Train QBM by computing gradients of relative entropy
 
     Args:
         model_ham_ops (list[qu.qarray]): A list of operators in the model Hamiltonian
         target_ham_expectations (list[float]): A list of target hamiltonian expectation values
         target_eta (qu.qarray): Target density matrix
-        params (np.ndarray): Parameters of QBM density matrix 
+        params (np.ndarray): Parameters of QBM density matrix
         learning_rate (float): Learning rate
         epochs (int): The number of epochs in the training
         eps (float): Stop traninig when gradient gets smaller than eps
@@ -88,10 +82,10 @@ def training_qbm(
         np.ndarray: Parameters of the trained QBM desity matrix
         list[np.ndarray]: Maximum absolute gradients
         list[float]: A list of relative entropies
-    """
+    """  # noqa: E501
     max_grad_hist = []
     qre_hist = []
-    
+
     params = initial_params
     for _ in range(epochs):
         # create qbm hamiltonian
