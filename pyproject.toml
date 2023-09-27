@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "qbm-quimb"
-version = "0.1.0"
+version = "0.1.1"
 description = "Quantum Boltzmann Machine Training with quimb"
 authors = ["Enrico Rinaldi <enrico.rinaldi@quantinuum.com>"]
 license = "Apache-2.0"
