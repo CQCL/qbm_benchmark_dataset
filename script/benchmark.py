@@ -5,6 +5,7 @@ import argparse
 import numpy as np
 
 from qbm_quimb import hamiltonians, data, training
+from qbm_quimb.training import GibbsState, QBM
 
 ##########
 # CONFIG #
@@ -21,6 +22,7 @@ parser.add_argument(
     "--e", type=int, default=200, help="Number of traninig epochs (200)"
 )
 parser.add_argument("--er", type=int, default=1e-6, help="Error tolerance (1e-6)")
+parser.add_argument("--qre", type=bool, default=True, help="True to output relative entropies")
 
 args = parser.parse_args()
 
@@ -29,6 +31,7 @@ model_label = args.l
 learning_rate = args.lr
 epochs = args.e
 eps = args.er
+compute_qre = args.qre
 
 ########
 # DATA #
@@ -38,42 +41,49 @@ eps = args.er
 # is taken to generate data (expectation values)
 target_label = 0
 target_ham_ops = hamiltonians.hamiltonian_operators(n_qubits, target_label)
-target_params = [4.0, 4.0]
-target_beta = 10.0
+target_params = np.array([4.0, 4.0])
+target_beta = 2.0
 
-target_expects, target_eta = data.gibbs_expect(
-    target_beta, target_params, target_ham_ops
-)
+target_state = GibbsState(target_ham_ops, target_params, target_beta)
+
+# A list of operators in the model Hamiltonian
+model_ham_ops = hamiltonians.hamiltonian_operators(n_qubits, model_label)
+target_expects = target_state.compute_expectation(model_ham_ops)
 
 #############
 # QBM Model #
 #############
 
-model_ham_ops = hamiltonians.hamiltonian_operators(n_qubits, model_label)
+initial_params = rng.normal(size=len(model_ham_ops))
+qbm_state = QBM(model_ham_ops, initial_params)
 
 
 ################
 # QBM Taininig #
 ################
 
-initial_params = rng.normal(size=len(model_ham_ops))
+target_eta = None
+if compute_qre:
+    target_eta = target_state
 
-qbm_params, max_grads_hist, qre_hist = training.training_qbm(
-    model_ham_ops,
+qbm_state, max_grads_hist, qre_hist = training.train_qbm(
+    qbm_state,
     target_expects,
-    target_eta,
-    initial_params=initial_params,
     learning_rate=learning_rate,
     epochs=epochs,
     eps=eps,
+    compute_qre=compute_qre,
+    target_eta=target_eta
 )
 
 
 print(f"target parameters: {target_params}")
-print(f"trained parameters: {qbm_params}")
+print(f"trained parameters: {qbm_state.get_coeffs()}")
 # print(f"Relative entropy: {qre_hist}")
 
 # import matplotlib.pyplot as plt
 
-# plt.plot(qre_hist,'.')
+# plt.plot(qre_hist[1:],'.')
+# plt.xlabel("Epoch")
+# plt.ylabel("Relative entropy")
 # plt.show()
