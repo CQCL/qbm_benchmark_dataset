@@ -3,105 +3,142 @@ Tools for training Quantum Boltzmann Machine with quantum relative entropy.
 """
 import quimb as qu
 import numpy as np
+from typing import Optional
 
 from qbm_quimb import hamiltonians
 
 
-def qre(eta, h_qbm):
-    """Quantum relative entropy
+class GibbsState:
+    """Parent class to represent a Gibbs state."""
 
-    Args:
-        eta (Any): Target density matrix
-        h_qbm (Any): Hamiltonian of the QBM
-    """
-    # h = qu.entropy(eta) # do not use because it has log2 inside
-    evals = qu.eigvalsh(eta).clip(1e-300)
-    h = np.sum(evals * np.log(evals))
-    # use log base e all the way
-    evals = qu.eigvalsh(h_qbm).clip(1e-300)
-    z = np.sum(np.exp(evals))
-    eta_stat = qu.expec(eta, h_qbm)
-    return h - eta_stat + qu.log(z)
+    def __init__(
+        self, ham_ops: list[qu.qarray], coeffs: np.ndarray[float], beta: float
+    ):
+        self.ham_ops = ham_ops
+        self.coeffs = coeffs
+        self.beta = beta
 
+    def get_hamiltonian(self) -> qu.qarray:
+        """Return total QBM Hamiltonian."""
+        return hamiltonians.total_hamiltonian(self.ham_ops, self.coeffs)
 
-def compute_expectations(rho: qu.qarray, operators: list[qu.qarray]) -> list[float]:
-    """Compute expectation values of operators w.r.t the density matrix rho
+    def get_coeffs(self) -> np.ndarray[float]:
+        """Return a list of coefficients."""
+        return self.coeffs
 
-    Args:
-        rho (qu.qarray): Density matrix
-        operators (list[qu.qarray]): A list of operators
+    def get_density_matrix(self) -> qu.qarray:
+        """Return the density matrix of Gibbs state."""
+        ham = self.get_hamiltonian()
+        return qu.thermal_state(ham, self.beta)
 
-    Returns:
-        list[float]: A list of expectation values
-    """
-    expectations = []
-    for op in operators:
-        expectations.append(qu.expec(rho, op))
-    return expectations
+    def compute_expectation(self, ops: list[qu.qarray]) -> list[float]:
+        """Compute expectation values of a set of operators w.r.t the Gibbs state.
 
+        Args:
+            ops (float[qu.qarray]): A list of operators.
 
-def compute_grads(
-    qbm_expectations: list[float],
-    target_expectations: list[float],
-) -> np.ndarray:
-    """Compute gradients given a list of hamiltonian terms (operators)
-
-    Args:
-        ham_terms (list[np.ndarray]): A list of hamiltonian terms
-        ham_expectations (list[float])s A list of hamiltonian expectation values
-        rho (qu.qarray): The QBM sdensity matrix
-
-    Returns:
-        np.ndarray: The array of the gradients
-    """
-    grads = [qbm - targ for (qbm, targ) in zip(qbm_expectations, target_expectations)]
-    return np.array(grads)
+        Returns:
+            list[float]: A list of expectation values.
+        """
+        rho = self.get_density_matrix()
+        return [qu.expec(rho, op) for op in ops]
 
 
-def training_qbm(
-    model_ham_ops: list[qu.qarray],
-    target_ham_expectations: list[float],
-    target_eta: qu.qarray,
-    initial_params: np.ndarray = None,
+class QBM(GibbsState):
+    """Represent a quantum Boltzmann machine exp(H) for a model Hamiltonian H."""
+
+    def __init__(self, ham_ops: list[qu.qarray], coeffs: list[float]):
+        super().__init__(ham_ops, coeffs, beta=-1.0)
+
+    def compute_grads(self, target_expects: list[float]) -> np.ndarray[float]:
+        """Compute gradient of operator expectation values.
+
+        Args:
+            target_expects (list[float]): A list of expectation values w.r.t. the target state.
+
+        Returns:
+            np.ndarray[float]: An array of gradients.
+        """
+        qbm_expects = self.compute_expectation(self.ham_ops)
+        grads = [qbm - targ for (qbm, targ) in zip(qbm_expects, target_expects)]
+        return np.array(grads)
+
+    def update_params(self, grads: np.ndarray[float], learning_rate: float) -> None:
+        """Update coefficients of Hamiltonian in QBM.
+
+        Args:
+            grads (np.ndarray[float]): A list of gradients of relative entropy.
+            learning_rate (float): A learning rate.
+        """
+        self.coeffs = self.coeffs - learning_rate * grads
+
+    def compute_qre(self, target_state: GibbsState) -> float:
+        """Compute quantum relative entropy between target (eta) and QBM states (rho),
+        Tr[eta ln(eta) - eta ln(rho)].
+
+        Args:
+            target_state (GibbsState): A target state.
+
+        Returns:
+            float: Quantum relative entropy.
+        """
+        eta = target_state.get_density_matrix()
+        # check if rank = 1, i.e., eta is a pure state
+        if np.linalg.matrix_rank(eta.A) == 1:
+            h = 0
+        else:
+            # h = qu.entropy(eta) # do not use because it has log2 inside
+            # use log base e all the way
+            eta_evals = qu.eigvalsh(eta).clip(1e-300)
+            h = np.sum(eta_evals * np.log(eta_evals))
+        ham = self.get_hamiltonian()
+        ham_evals = qu.eigvalsh(ham).clip(1e-300)
+        z = np.sum(np.exp(ham_evals))
+        eta_stat = qu.expec(eta, ham)
+        return h - eta_stat + qu.log(z)
+
+
+def train_qbm(
+    qbm: QBM,
+    target_expects: list[float],
     learning_rate: float = 0.2,
     epochs: int = 200,
     eps: float = 1e-6,
-) -> tuple[np.ndarray, list[np.ndarray], list[float]]:
-    """Train QBM by computing gradients of relative entropy
+    compute_qre: bool = False,
+    target_eta: Optional[GibbsState] = None,
+) -> tuple[QBM, list[np.ndarray], list[float]]:
+    """Training QBM given a list of target expectation values.
 
     Args:
-        model_ham_ops (list[qu.qarray]): A list of operators in the model Hamiltonian
-        target_ham_expectations (list[float]): A list of target hamiltonian expectation values
-        target_eta (qu.qarray): Target density matrix
-        params (np.ndarray): Parameters of QBM density matrix
-        learning_rate (float): Learning rate
-        epochs (int): The number of epochs in the training
-        eps (float): Stop traninig when gradient gets smaller than eps
+        qbm (QBM): Quantum Bolzmann machine to be trained.
+        target_expects (list[float]): A list of expectation values w.r.t the target state.
+        learning_rate (float, optional): Learning rate. Defaults to 0.2.
+        epochs (int, optional): Number of epochs. Defaults to 200.
+        eps (float, optional): Threshold gradient below which the training loop is terminated. Defaults to 1e-6.
+        compute_qre (bool, optional): Compute relative entropy if True. Defaults to False.
+        target_eta (Optional[GibbsState], optional): Target state used to compute relative entropy if compute_qre is True. Defaults to None.
 
     Returns:
-        np.ndarray: Parameters of the trained QBM desity matrix
-        list[np.ndarray]: Maximum absolute gradients
-        list[float]: A list of relative entropies
-    """  # noqa: E501
+        QBM: The trained QBM.
+        list[np.ndarray]: History of maxes of absolute values of gradients.
+        list[float]]: History of relative entropies if compute_qre is True. Otherwise an empty list.
+    """
     max_grad_hist = []
     qre_hist = []
 
-    params = initial_params
     for _ in range(epochs):
-        # create qbm hamiltonian
-        model_ham = hamiltonians.total_hamiltonian(model_ham_ops, params)
-        model_ham = model_ham.real
-
-        # create qbm state
-        qbm_rho = qu.thermal_state(model_ham, -1.0)
-        qbm_expectations = compute_expectations(qbm_rho, model_ham_ops)
-        qre_hist.append(qre(target_eta, model_ham))
+        # quantum relative entropy
+        if compute_qre:
+            qre_hist.append(qbm.compute_qre(target_eta))
 
         # grad and update
-        grads = compute_grads(qbm_expectations, target_ham_expectations)
-        params = params - learning_rate * grads
+        grads = qbm.compute_grads(target_expects)
         max_grad_hist.append(np.max(np.abs(grads)))
+        qbm.update_params(grads, learning_rate)
         if max_grad_hist[-1] < eps:
             break
 
-    return params, max_grad_hist, qre_hist
+    if compute_qre:
+        qre_hist.append(qbm.compute_qre(target_eta))
+
+    return qbm, max_grad_hist, qre_hist
