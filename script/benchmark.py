@@ -22,7 +22,9 @@ parser.add_argument(
     "--e", type=int, default=200, help="Number of traninig epochs (200)"
 )
 parser.add_argument("--er", type=int, default=1e-6, help="Error tolerance (1e-6)")
-parser.add_argument("--qre", type=bool, default=True, help="True to output relative entropies")
+parser.add_argument(
+    "--qre", type=bool, default=True, help="True to output relative entropies"
+)
 
 args = parser.parse_args()
 
@@ -73,7 +75,7 @@ qbm_state, max_grads_hist, qre_hist = training.train_qbm(
     epochs=epochs,
     eps=eps,
     compute_qre=compute_qre,
-    target_eta=target_eta
+    target_eta=target_eta,
 )
 
 
