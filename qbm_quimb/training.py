@@ -72,7 +72,7 @@ class QBM(GibbsState):
         """
         self.coeffs = self.coeffs - learning_rate * grads
 
-    def compute_qre(self, target_state: GibbsState) -> float:
+    def compute_qre(self, eta: qu.qarray) -> float:
         """Compute quantum relative entropy between target (eta) and QBM states (rho),
         Tr[eta ln(eta) - eta ln(rho)].
 
@@ -82,7 +82,6 @@ class QBM(GibbsState):
         Returns:
             float: Quantum relative entropy.
         """
-        eta = target_state.get_density_matrix()
         # check if rank = 1, i.e., eta is a pure state
         if np.linalg.matrix_rank(eta.A) == 1:
             h = 0

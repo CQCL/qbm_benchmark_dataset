@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 
 from qbm_quimb import hamiltonians, data, training
-from qbm_quimb.training import GibbsState, QBM
+from qbm_quimb.training import QBM
 
 ##########
 # CONFIG #
@@ -45,12 +45,18 @@ target_label = 0
 target_ham_ops = hamiltonians.hamiltonian_operators(n_qubits, target_label)
 target_params = np.array([4.0, 4.0])
 target_beta = 2.0
-
-target_state = GibbsState(target_ham_ops, target_params, target_beta)
+depolarizing_noise = 0.0
 
 # A list of operators in the model Hamiltonian
 model_ham_ops = hamiltonians.hamiltonian_operators(n_qubits, model_label)
-target_expects = target_state.compute_expectation(model_ham_ops)
+target_expects, target_state = data.generate_data(
+    n_qubits,
+    target_label,
+    target_params,
+    target_beta,
+    model_ham_ops,
+    depolarizing_noise,
+)
 
 #############
 # QBM Model #
