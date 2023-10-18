@@ -42,7 +42,6 @@ compute_qre = args.qre
 # As an example, the Gibbs state of TF-Ising model (label=0)
 # is taken to generate data (expectation values)
 target_label = 0
-target_ham_ops = hamiltonians.hamiltonian_operators(n_qubits, target_label)
 target_params = np.array([4.0, 4.0])
 target_beta = 2.0
 depolarizing_noise = 0.0
