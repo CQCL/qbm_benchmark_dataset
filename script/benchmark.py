@@ -17,6 +17,9 @@ rng = np.random.default_rng(seed=1)
 parser = argparse.ArgumentParser()
 parser.add_argument("--n", type=int, default=8, help="Number of qubits (8)")
 parser.add_argument("--l", type=int, default=0, help="Label of QBM model (0)")
+parser.add_argument(
+    "--dn", type=float, default=0.0, help="Intensity of depolarizing noise (0.0)"
+)
 parser.add_argument("--lr", type=float, default=0.2, help="Learning rate (0.2)")
 parser.add_argument(
     "--e", type=int, default=200, help="Number of traninig epochs (200)"
@@ -30,6 +33,7 @@ args = parser.parse_args()
 
 n_qubits = args.n
 model_label = args.l
+depolarizing_noise = args.dn
 learning_rate = args.lr
 epochs = args.e
 eps = args.er
@@ -44,7 +48,6 @@ compute_qre = args.qre
 target_label = 0
 target_params = np.array([4.0, 4.0])
 target_beta = 2.0
-depolarizing_noise = 0.0
 
 # A list of operators in the model Hamiltonian
 model_ham_ops = hamiltonians.hamiltonian_operators(n_qubits, model_label)

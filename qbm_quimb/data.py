@@ -39,7 +39,7 @@ def generate_data(
     depolarizing_noise: float = 0.0,
     file_path: Optional[str] = None,
 ) -> tuple[list[float], qu.qarray]:
-    """Create a density matrix for the Gibbs state and calculate thermal expectation values of operators
+    """Create a target density matrix (which could be noisy) and calculate thermal expectation values of given operators.
 
     Args:
         n_qubits (int): The number of qubits
@@ -56,14 +56,29 @@ def generate_data(
     """  # noqa: E501
     target_ham_ops = hamiltonians.hamiltonian_operators(n_qubits, target_label)
     target_state = GibbsState(target_ham_ops, target_params, target_beta)
-    eta = (
-        1 - depolarizing_noise
-    ) * target_state.get_density_matrix() + depolarizing_noise * qu.qarray(
-        np.eye(2**n_qubits), dtype=complex
-    ) / 2**n_qubits
+    eta = target_state.get_density_matrix()
+    if depolarizing_noise > 0.0:
+        eta = (1 - depolarizing_noise) * eta + depolarizing_noise * qu.qarray(
+            np.eye(2**n_qubits), dtype=complex
+        ) / 2**n_qubits
     target_expects = [qu.expec(eta, op) for op in hamiltonian_ops]
     if file_path:
         with open(file_path, mode="wb") as f:
             pickle.dump((target_expects, eta), f)
 
+    return target_expects, eta
+
+
+def load_data(file_path) -> tuple[list[float], qu.qarray]:
+    """Load the data of thermal expectation values of operators and the target density matrix from a file.
+
+    Args:
+        file_path (str): Input file path
+
+    Returns:
+        list[float]: A list of expactation values of Hamiltonian terms
+        qu.qarray: Density matrix for the target state (could be noisy)
+    """  # noqa: E501
+    with open(file_path, "rb") as f:
+        target_expects, eta = pickle.load(f)
     return target_expects, eta

@@ -77,7 +77,7 @@ class QBM(GibbsState):
         Tr[eta ln(eta) - eta ln(rho)].
 
         Args:
-            target_state (GibbsState): A target state.
+            eta (qu.qarray): A target density martix.
 
         Returns:
             float: Quantum relative entropy.
