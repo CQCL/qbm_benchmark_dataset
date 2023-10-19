@@ -58,7 +58,7 @@ class QBM(GibbsState):
 
         Returns:
             np.ndarray[float]: An array of gradients.
-        """
+        """  # noqa: E501
         qbm_expects = self.compute_expectation(self.ham_ops)
         grads = [qbm - targ for (qbm, targ) in zip(qbm_expects, target_expects)]
         return np.array(grads)
@@ -86,8 +86,6 @@ class QBM(GibbsState):
         if np.linalg.matrix_rank(eta.A) == 1:
             h = 0
         else:
-            # h = qu.entropy(eta) # do not use because it has log2 inside
-            # use log base e all the way
             eta_evals = qu.eigvalsh(eta).clip(1e-300)
             h = np.sum(eta_evals * np.log(eta_evals))
         ham = self.get_hamiltonian()
@@ -121,7 +119,7 @@ def train_qbm(
         QBM: The trained QBM.
         list[np.ndarray]: History of maxes of absolute values of gradients.
         list[float]]: History of relative entropies if compute_qre is True. Otherwise an empty list.
-    """
+    """  # noqa: E501
     max_grad_hist = []
     qre_hist = []
 

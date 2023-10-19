@@ -46,14 +46,14 @@ def generate_data(
         target_label (int): Hamiltonian label for target
         target_params (np.ndarray[float]): Parameters of the target Hamiltonian
         target_beta (float): Inverse temperature
-        hamiltonian_ops (list[qu.qarray]): A list of operators contained in the Hamitonian
+        hamiltonian_ops (list[qu.qarray]): A list of operators contained in the Hamiltonian
         depolarizing_noise (float): Intensity of depolarizing noise
         file_path (Optional[str]): Output file path
 
     Returns:
         list[float]: A list of expactation values of Hamiltonian terms
         qu.qarray: Density matrix for the target state (could be noisy)
-    """
+    """  # noqa: E501
     target_ham_ops = hamiltonians.hamiltonian_operators(n_qubits, target_label)
     target_state = GibbsState(target_ham_ops, target_params, target_beta)
     eta = (
