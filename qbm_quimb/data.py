@@ -38,7 +38,7 @@ def generate_data(
     hamiltonian_ops: list[qu.qarray],
     depolarizing_noise: float = 0.0,
     file_path: Optional[str] = None,
-) -> tuple[list[float], Optional[qu.qarray]]:
+) -> tuple[list[float], qu.qarray]:
     """Create a density matrix for the Gibbs state and calculate thermal expectation values of operators
 
     Args:
