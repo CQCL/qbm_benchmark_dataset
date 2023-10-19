@@ -69,7 +69,7 @@ def generate_data(
     return target_expects, eta
 
 
-def load_data(file_path) -> tuple[list[float], qu.qarray]:
+def load_data(file_path: str) -> tuple[list[float], qu.qarray]:
     """Load the data of thermal expectation values of operators and the target density matrix from a file.
 
     Args:
