@@ -63,7 +63,8 @@ target_expects, target_state = data.generate_data(
 
 initial_params = rng.normal(size=len(model_ham_ops))
 qbm_state = QBM(model_ham_ops, initial_params)
-
+print(f"initial parameters: {qbm_state.get_coeffs()}")
+print(f"target parameters: {target_params}")
 
 ################
 # QBM Taininig #
@@ -83,10 +84,10 @@ qbm_state, max_grads_hist, qre_hist = training.train_qbm(
     target_eta=target_eta,
 )
 
-
-print(f"target parameters: {target_params}")
 print(f"trained parameters: {qbm_state.get_coeffs()}")
-# print(f"Relative entropy: {qre_hist}")
+if compute_qre:
+    print(f"Initial relative entropy: {qre_hist[0]}")
+    print(f"Trained relative entropy: {qre_hist[-1]}")
 
 # import matplotlib.pyplot as plt
 
