@@ -58,7 +58,7 @@ class QBM(GibbsState):
 
         Returns:
             np.ndarray[float]: An array of gradients.
-        """
+        """  # noqa: E501
         qbm_expects = self.compute_expectation(self.ham_ops)
         grads = [qbm - targ for (qbm, targ) in zip(qbm_expects, target_expects)]
         return np.array(grads)
@@ -72,23 +72,20 @@ class QBM(GibbsState):
         """
         self.coeffs = self.coeffs - learning_rate * grads
 
-    def compute_qre(self, target_state: GibbsState) -> float:
+    def compute_qre(self, eta: qu.qarray) -> float:
         """Compute quantum relative entropy between target (eta) and QBM states (rho),
         Tr[eta ln(eta) - eta ln(rho)].
 
         Args:
-            target_state (GibbsState): A target state.
+            eta (qu.qarray): A target density martix.
 
         Returns:
             float: Quantum relative entropy.
         """
-        eta = target_state.get_density_matrix()
         # check if rank = 1, i.e., eta is a pure state
         if np.linalg.matrix_rank(eta.A) == 1:
             h = 0
         else:
-            # h = qu.entropy(eta) # do not use because it has log2 inside
-            # use log base e all the way
             eta_evals = qu.eigvalsh(eta).clip(1e-300)
             h = np.sum(eta_evals * np.log(eta_evals))
         ham = self.get_hamiltonian()
@@ -122,7 +119,7 @@ def train_qbm(
         QBM: The trained QBM.
         list[np.ndarray]: History of maxes of absolute values of gradients.
         list[float]]: History of relative entropies if compute_qre is True. Otherwise an empty list.
-    """
+    """  # noqa: E501
     max_grad_hist = []
     qre_hist = []
 
