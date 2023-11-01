@@ -24,9 +24,13 @@ parser.add_argument("--lr", type=float, default=0.2, help="Learning rate (0.2)")
 parser.add_argument(
     "--e", type=int, default=200, help="Number of traninig epochs (200)"
 )
-parser.add_argument("--er", type=int, default=1e-6, help="Error tolerance for gradients (1e-6)")
 parser.add_argument(
-    "--qre", action='store_true', help="If we want to compute and output relative entropies"
+    "--er", type=int, default=1e-6, help="Error tolerance for gradients (1e-6)"
+)
+parser.add_argument(
+    "--qre",
+    action="store_true",
+    help="If we want to compute and output relative entropies",
 )
 
 args = parser.parse_args()
@@ -79,8 +83,8 @@ if compute_qre:
     target_eta = target_state
 
 qbm_state, max_grads_hist, qre_hist = training.train_qbm(
-    qbm_state,
-    target_expects,
+    qbm=qbm_state,
+    target_expects=target_expects,
     learning_rate=learning_rate,
     epochs=epochs,
     eps=eps,
@@ -94,9 +98,18 @@ if compute_qre:
     print(f"Initial relative entropy: {qre_hist[0]}")
     print(f"Trained relative entropy: {qre_hist[-1]}")
 
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-# plt.plot(qre_hist[1:],'.')
-# plt.xlabel("Epoch")
-# plt.ylabel("Relative entropy")
-# plt.show()
+if compute_qre:
+    plt.plot(qre_hist[1:], "-")
+    plt.xlabel("Epoch")
+    plt.ylabel("Relative entropy")
+    plt.savefig(
+        f"data/figures/QRE_q{n_qubits}_qbm{model_label}_e{epochs}_lr{str(learning_rate).replace('.','-')}.png"
+    )
+plt.plot(max_grads_hist[1:], "-")
+plt.xlabel("Epoch")
+plt.ylabel("Max absolute value of gradients")
+plt.savefig(
+    f"data/figures/MaxGrad_q{n_qubits}_qbm{model_label}_e{epochs}_lr{str(learning_rate).replace('.','-')}.png"
+)
