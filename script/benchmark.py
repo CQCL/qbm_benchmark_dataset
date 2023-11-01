@@ -24,9 +24,9 @@ parser.add_argument("--lr", type=float, default=0.2, help="Learning rate (0.2)")
 parser.add_argument(
     "--e", type=int, default=200, help="Number of traninig epochs (200)"
 )
-parser.add_argument("--er", type=int, default=1e-6, help="Error tolerance (1e-6)")
+parser.add_argument("--er", type=int, default=1e-6, help="Error tolerance for gradients (1e-6)")
 parser.add_argument(
-    "--qre", type=bool, default=True, help="True to output relative entropies"
+    "--qre", action='store_true', help="If we want to compute and output relative entropies"
 )
 
 args = parser.parse_args()
@@ -66,8 +66,9 @@ target_expects, target_state = data.generate_data(
 
 initial_params = rng.normal(size=len(model_ham_ops))
 qbm_state = QBM(model_ham_ops, initial_params)
-print(f"initial parameters: {qbm_state.get_coeffs()}")
-print(f"target parameters: {target_params}")
+print(f"Initial parameters: {qbm_state.get_coeffs()}")
+print(f"Target parameters: {target_params}")
+print(f"Target beta: {target_beta}")
 
 ################
 # QBM Taininig #
@@ -87,7 +88,8 @@ qbm_state, max_grads_hist, qre_hist = training.train_qbm(
     target_eta=target_eta,
 )
 
-print(f"trained parameters: {qbm_state.get_coeffs()}")
+print(f"Trained parameters: {qbm_state.get_coeffs()}")
+print(f"Max. gradients: {max_grads_hist[-1]}")
 if compute_qre:
     print(f"Initial relative entropy: {qre_hist[0]}")
     print(f"Trained relative entropy: {qre_hist[-1]}")
