@@ -3,9 +3,14 @@ Benchmark a QBM on the Hamiltonian dataset
 """
 import argparse
 import numpy as np
-
+from time import time
 from qbm_quimb import hamiltonians, data, training
 from qbm_quimb.training import QBM
+
+
+def stringify(p: float):
+    return str(p).replace(".", "-")
+
 
 ##########
 # CONFIG #
@@ -51,7 +56,7 @@ compute_qre = args.qre
 # is taken to generate data (expectation values)
 target_label = 0
 target_params = np.array([4.0, 4.0])
-target_beta = 2.0
+target_beta = 1.0
 
 # A list of operators in the model Hamiltonian
 model_ham_ops = hamiltonians.hamiltonian_operators(n_qubits, model_label)
@@ -78,6 +83,8 @@ print(f"Target beta: {target_beta}")
 # QBM Taininig #
 ################
 
+start_time = time()
+print("Start training...")
 target_eta = None
 if compute_qre:
     target_eta = target_state
@@ -91,7 +98,8 @@ qbm_state, max_grads_hist, qre_hist = training.train_qbm(
     compute_qre=compute_qre,
     target_eta=target_eta,
 )
-
+end_time = time()
+print(f"Training took {(end_time-start_time):.2f}s to run")
 print(f"Trained parameters: {qbm_state.get_coeffs()}")
 print(f"Max. gradients: {max_grads_hist[-1]}")
 if compute_qre:
@@ -100,16 +108,13 @@ if compute_qre:
 
 import matplotlib.pyplot as plt
 
+fig_name = f"TFIM_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}.png"
 if compute_qre:
     plt.plot(qre_hist[1:], "-")
     plt.xlabel("Epoch")
     plt.ylabel("Relative entropy")
-    plt.savefig(
-        f"data/figures/QRE_q{n_qubits}_qbm{model_label}_e{epochs}_lr{str(learning_rate).replace('.','-')}.png"
-    )
+    plt.savefig(f"data/figures/QRE_{fig_name}")
 plt.plot(max_grads_hist[1:], "-")
 plt.xlabel("Epoch")
 plt.ylabel("Max absolute value of gradients")
-plt.savefig(
-    f"data/figures/MaxGrad_q{n_qubits}_qbm{model_label}_e{epochs}_lr{str(learning_rate).replace('.','-')}.png"
-)
+plt.savefig(f"data/figures/MaxGrad_{fig_name}")
