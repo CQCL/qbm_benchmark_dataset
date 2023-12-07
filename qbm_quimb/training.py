@@ -48,6 +48,14 @@ class QBM(GibbsState):
     """Represent a quantum Boltzmann machine exp(H) for a model Hamiltonian H."""
 
     def __init__(self, ham_ops: list[qu.qarray], coeffs: list[float]):
+        """Initialize the Gibbs state corresponding to the QBM model.
+        We use $\beta=-1$ to be consistent with the quimb.thermal_state function,
+        so the QBM is $e^H/Z$.
+
+        Args:
+            ham_ops (list[qu.qarray]): List of operators in the Hamiltonian
+            coeffs (list[float]): List of parameters, one for each operator in the Hamiltonian
+        """  # noqa: E501
         super().__init__(ham_ops, coeffs, beta=-1.0)
 
     def compute_grads(self, target_expects: list[float]) -> np.ndarray[float]:
