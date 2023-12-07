@@ -4,6 +4,7 @@ Benchmark a QBM on the Hamiltonian dataset
 import argparse
 import numpy as np
 from time import time
+import matplotlib.pyplot as plt
 from qbm_quimb import hamiltonians, data, training
 from qbm_quimb.training import QBM
 
@@ -106,7 +107,6 @@ if compute_qre:
     print(f"Initial relative entropy: {qre_hist[0]}")
     print(f"Trained relative entropy: {qre_hist[-1]}")
 
-import matplotlib.pyplot as plt
 
 fig_name = f"TFIM_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}.png"
 if compute_qre:
