@@ -3,8 +3,8 @@ Benchmark a QBM on the Hamiltonian dataset
 """
 import argparse
 import numpy as np
-from time import time
 import matplotlib.pyplot as plt
+from time import time
 from qbm_quimb import hamiltonians, data, training
 from qbm_quimb.training import QBM
 
@@ -26,12 +26,18 @@ parser.add_argument("--l", type=int, default=0, help="Label of QBM model (0)")
 parser.add_argument(
     "--dn", type=float, default=0.0, help="Intensity of depolarizing noise (0.0)"
 )
-parser.add_argument("--lr", type=float, default=0.2, help="Learning rate (0.2)")
+parser.add_argument("--lr", type=float, default=0.01, help="Learning rate (0.01)")
 parser.add_argument(
-    "--e", type=int, default=200, help="Number of traninig epochs (200)"
+    "--e", type=int, default=1000, help="Number of traninig epochs (1000)"
 )
 parser.add_argument(
-    "--er", type=int, default=1e-6, help="Error tolerance for gradients (1e-6)"
+    "--er", type=float, default=1e-6, help="Error tolerance for gradients (1e-6)"
+)
+parser.add_argument(
+    "--sn",
+    type=float,
+    default=0.0,
+    help="Standard deviation of gaussian shot noise for computing gradients (0.0)",
 )
 parser.add_argument(
     "--qre",
@@ -47,6 +53,7 @@ depolarizing_noise = args.dn
 learning_rate = args.lr
 epochs = args.e
 eps = args.er
+shot_noise_sigma = args.sn
 compute_qre = args.qre
 
 ########
@@ -96,6 +103,7 @@ qbm_state, max_grads_hist, qre_hist = training.train_qbm(
     learning_rate=learning_rate,
     epochs=epochs,
     eps=eps,
+    sigma=shot_noise_sigma,
     compute_qre=compute_qre,
     target_eta=target_eta,
 )
@@ -107,8 +115,7 @@ if compute_qre:
     print(f"Initial relative entropy: {qre_hist[0]}")
     print(f"Trained relative entropy: {qre_hist[-1]}")
 
-
-fig_name = f"TFIM_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}.png"
+fig_name = f"TFIM_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}.png"  # noqa: E501
 if compute_qre:
     plt.plot(qre_hist[1:], "-")
     plt.xlabel("Epoch")
