@@ -58,17 +58,25 @@ class QBM(GibbsState):
         """  # noqa: E501
         super().__init__(ham_ops, coeffs, beta=-1.0)
 
-    def compute_grads(self, target_expects: list[float]) -> np.ndarray[float]:
-        """Compute gradient of operator expectation values.
+    def compute_grads(
+        self, target_expects: list[float], sigma: float = 0.0
+    ) -> np.ndarray[float]:
+        """Compute gradient of operator expectation values with the Gaussian shot noise of
+        QBM and/or target expectation values.
 
         Args:
             target_expects (list[float]): A list of expectation values w.r.t. the target state.
+            sigma (float): Standard deviation of the gradient due to the shot noise.
 
         Returns:
             np.ndarray[float]: An array of gradients.
         """  # noqa: E501
         qbm_expects = self.compute_expectation(self.ham_ops)
-        grads = [qbm - targ for (qbm, targ) in zip(qbm_expects, target_expects)]
+        noises = np.random.normal(loc=0, scale=sigma, size=len(self.ham_ops))
+        grads = [
+            qbm - targ + noise
+            for (qbm, targ, noise) in zip(qbm_expects, target_expects, noises)
+        ]
         return np.array(grads)
 
     def update_params(self, grads: np.ndarray[float], learning_rate: float) -> None:
@@ -109,6 +117,7 @@ def train_qbm(
     learning_rate: float = 0.2,
     epochs: int = 200,
     eps: float = 1e-6,
+    sigma: float = 0.0,
     compute_qre: bool = False,
     target_eta: Optional[GibbsState] = None,
 ) -> tuple[QBM, list[np.ndarray], list[float]]:
@@ -137,7 +146,7 @@ def train_qbm(
             qre_hist.append(qbm.compute_qre(target_eta))
 
         # grad and update
-        grads = qbm.compute_grads(target_expects)
+        grads = qbm.compute_grads(target_expects, sigma=sigma)
         max_grad_hist.append(np.max(np.abs(grads)))
         qbm.update_params(grads, learning_rate)
         if max_grad_hist[-1] < eps:
