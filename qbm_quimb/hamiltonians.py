@@ -199,14 +199,12 @@ def hamiltonian_operators(
             dims = (2,) * n
             for k in ["X", "Y", "Z"]:
                 for i in range(n - 1):
-                    row = i // sqrt_n
-                    col = i % sqrt_n
                     if i % sqrt_n != sqrt_n - 1:  # not the right end
                         h_ops.append(qu.ikron(qu.pauli(k), dims, [i, i + 1]))
-                        h_names.append(f"{k}_{row}-{col}_{row}-{col+1}")
+                        h_names.append(f"{k}_{i}_{i+1}")
                     if i // sqrt_n != sqrt_n - 1:  # not the bottom end
                         h_ops.append(qu.ikron(qu.pauli(k), dims, [i, i + sqrt_n]))
-                        h_names.append(f"{k}_{row}-{col}_{row+1}-{col}")
+                        h_names.append(f"{k}_{i}_{i+sqrt_n}")
                 for i in range(n):
                     h_ops.append(qu.ikron(qu.pauli(k), dims, [i]))
                     h_names.append(f"{k}_{i}")

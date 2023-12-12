@@ -5,6 +5,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
+import matplotlib.pyplot as plt
 from qbm_quimb import hamiltonians, data, training
 from qbm_quimb.training import QBM
 
