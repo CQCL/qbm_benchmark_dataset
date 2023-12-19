@@ -5,7 +5,6 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
-import matplotlib.pyplot as plt
 from qbm_quimb import hamiltonians, data, training
 from qbm_quimb.training import QBM
 
@@ -118,11 +117,14 @@ if compute_qre:
 
 fig_name = f"TFIM_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}.png"  # noqa: E501
 if compute_qre:
-    plt.plot(qre_hist[1:], "-")
-    plt.xlabel("Epoch")
-    plt.ylabel("Relative entropy")
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.plot(qre_hist[1:], "-")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Relative entropy")
     plt.savefig(f"data/figures/QRE_{fig_name}")
-plt.plot(max_grads_hist[1:], "-")
-plt.xlabel("Epoch")
-plt.ylabel("Max absolute value of gradients")
+
+fig, ax = plt.subplots(figsize=(8, 8))
+ax.plot(max_grads_hist[1:], "-")
+ax.set_xlabel("Epoch")
+ax.set_ylabel("Max absolute value of gradients")
 plt.savefig(f"data/figures/MaxGrad_{fig_name}")
