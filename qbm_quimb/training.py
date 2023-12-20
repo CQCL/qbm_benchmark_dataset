@@ -119,7 +119,7 @@ def train_qbm(
     eps: float = 1e-6,
     sigma: float = 0.0,
     compute_qre: bool = False,
-    target_eta: Optional[GibbsState] = None,
+    target_eta: Optional[qu.qarray] = None,
 ) -> tuple[QBM, list[np.ndarray], list[float]]:
     """Training QBM given a list of target expectation values.
 
@@ -130,7 +130,7 @@ def train_qbm(
         epochs (int, optional): Number of epochs. Defaults to 200.
         eps (float, optional): Threshold gradient below which the training loop is terminated. Defaults to 1e-6.
         compute_qre (bool, optional): Compute relative entropy if True. Defaults to False.
-        target_eta (Optional[GibbsState], optional): Target state used to compute relative entropy if compute_qre is True. Defaults to None.
+        target_eta (Optional[qu.qarray], optional): Target state used to compute relative entropy if compute_qre is True. Defaults to None.
 
     Returns:
         QBM: The trained QBM.
