@@ -148,16 +148,28 @@ for stage in stages:
     if compute_qre:
         target_eta = target_state
 
-    qbm_state, max_grads_hist, qre_hist = training.train_qbm(
-        qbm=qbm_state,
-        target_expects=target_expects,
-        learning_rate=learning_rate,
-        epochs=epochs,
-        eps=eps,
-        sigma=shot_noise_sigma,
-        compute_qre=compute_qre,
-        target_eta=target_eta,
-    )
+    if stage == "pretraining":
+        qbm_state, max_grads_hist, qre_hist = training.train_qbm(
+            qbm=qbm_state,
+            target_expects=target_expects,
+            learning_rate=pre_learning_rate,
+            epochs=pre_epochs,
+            eps=eps,
+            sigma=shot_noise_sigma,
+            compute_qre=compute_qre,
+            target_eta=target_eta,
+        )
+    else:
+        qbm_state, max_grads_hist, qre_hist = training.train_qbm(
+            qbm=qbm_state,
+            target_expects=target_expects,
+            learning_rate=learning_rate,
+            epochs=epochs,
+            eps=eps,
+            sigma=shot_noise_sigma,
+            compute_qre=compute_qre,
+            target_eta=target_eta,
+        )
     end_time = time()
     print(f"Training took {(end_time-start_time):.2f}s to run")
     print(f"Trained parameters: {qbm_state.get_coeffs()}")
