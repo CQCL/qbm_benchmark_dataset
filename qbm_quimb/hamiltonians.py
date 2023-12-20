@@ -64,7 +64,7 @@ def creation_operator(n: int, index: int) -> qu.qarray:
 
 
 def hamiltonian_operators(
-    n: int, label: int, return_names: bool = False
+    n: int, label: int, cyclic: bool = False, return_names: bool = False
 ) -> list[qu.qarray] | tuple[list[qu.qarray], list[str]]:
     h_ops = []
     h_names = []
@@ -189,6 +189,9 @@ def hamiltonian_operators(
                 for i in range(n - 1):
                     h_ops.append(qu.ikron(qu.pauli(k), dims, [i, i + 1]))
                     h_names.append(f"{k}_{i}_{i+1}")
+                if cyclic:
+                    h_ops.append(qu.ikron(qu.pauli(k), dims, [0, n - 1]))
+                    h_names.append(f"{k}_{0}_{n-1}")
                 for i in range(n):
                     h_ops.append(qu.ikron(qu.pauli(k), dims, [i]))
                     h_names.append(f"{k}_{i}")
@@ -198,13 +201,19 @@ def hamiltonian_operators(
             sqrt_n = int(n**0.5)
             dims = (2,) * n
             for k in ["X", "Y", "Z"]:
-                for i in range(n - 1):
+                for i in range(n):
                     if i % sqrt_n != sqrt_n - 1:  # not the right end
                         h_ops.append(qu.ikron(qu.pauli(k), dims, [i, i + 1]))
                         h_names.append(f"{k}_{i}_{i+1}")
+                    elif cyclic:
+                        h_ops.append(qu.ikron(qu.pauli(k), dims, [i + 1 - sqrt_n, i]))
+                        h_names.append(f"{k}_{i+1-sqrt_n}_{i}")
                     if i // sqrt_n != sqrt_n - 1:  # not the bottom end
                         h_ops.append(qu.ikron(qu.pauli(k), dims, [i, i + sqrt_n]))
                         h_names.append(f"{k}_{i}_{i+sqrt_n}")
+                    elif cyclic:
+                        h_ops.append(qu.ikron(qu.pauli(k), dims, [i % sqrt_n, i]))
+                        h_names.append(f"{k}_{i % sqrt_n}_{i}")
                 for i in range(n):
                     h_ops.append(qu.ikron(qu.pauli(k), dims, [i]))
                     h_names.append(f"{k}_{i}")
