@@ -207,7 +207,7 @@ for stage in stages:
         print(f"Initial relative entropy: {qre_hist[0]}")
         print(f"Trained relative entropy: {qre_hist[-1]}")
 
-    fig_name = f"TFIM_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}.png"  # noqa: E501
+    fig_name = f"t{target_label}_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}.png"  # noqa: E501
     if compute_qre:
         fig, ax = plt.subplots(figsize=(8, 8))
         ax.plot(qre_hist[1:], "-")
