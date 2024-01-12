@@ -21,7 +21,7 @@ rng = np.random.default_rng(seed=1)
 
 # CLI arguments:
 parser = argparse.ArgumentParser()
-parser.add_argument("--n", type=int, default=8, help="Number of qubits (8)")
+parser.add_argument("--n", type=int, default=4, help="Number of qubits (4)")
 parser.add_argument("--l", type=int, default=0, help="Label of QBM model (0)")
 parser.add_argument(
     "--dn", type=float, default=0.0, help="Intensity of depolarizing noise (0.0)"
@@ -184,9 +184,11 @@ for stage in stages:
         ax.plot(qre_hist[1:], "-")
         ax.set_xlabel("Epoch")
         ax.set_ylabel("Relative entropy")
+        ax.set_yscale('log')
         plt.savefig(f"data/figures/QRE_{fig_name}")
     fig, ax = plt.subplots(figsize=(8, 8))
     ax.plot(max_grads_hist[1:], "-")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Max absolute value of gradients")
+    ax.set_yscale('log')
     plt.savefig(f"data/figures/MaxGrad_{fig_name}")
