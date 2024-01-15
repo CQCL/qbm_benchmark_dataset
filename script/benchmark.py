@@ -2,6 +2,7 @@
 Benchmark a QBM on the Hamiltonian dataset
 """
 import argparse
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
@@ -16,12 +17,15 @@ def stringify(p: float):
 ##########
 # CONFIG #
 ##########
-
-rng = np.random.default_rng(seed=1)
-
 # CLI arguments:
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(
+    description="Train a QBM model to represent a target Gibbs state"
+)
 parser.add_argument("--n", type=int, default=4, help="Number of qubits (4)")
+parser.add_argument("--t", type=int, default=0, help="Label of target model (0)")
+parser.add_argument(
+    "--b", type=float, default=1.0, help="Inverse temperature of target model (1.0)"
+)
 parser.add_argument("--l", type=int, default=0, help="Label of QBM model (0)")
 parser.add_argument(
     "--dn", type=float, default=0.0, help="Intensity of depolarizing noise (0.0)"
@@ -56,10 +60,24 @@ parser.add_argument(
     default=300,
     help="Number of traninig epochs for pretraining (300)",
 )
+parser.add_argument(
+    "--seed",
+    type=int,
+    default=1,
+    help="Seed for PRNG (1)",
+)
+parser.add_argument(
+    "--output",
+    type=str,
+    default="data/",
+    help="Output for data and figures (data/)",
+)
 
 args = parser.parse_args()
 
 n_qubits = args.n
+target_label = args.t
+target_beta = args.b
 model_label = args.l
 depolarizing_noise = args.dn
 learning_rate = args.lr
@@ -70,16 +88,25 @@ compute_qre = args.qre
 pre_model_label = args.pre_l
 pre_learning_rate = args.pre_lr
 pre_epochs = args.pre_e
+output_path = args.output
+os.makedirs(f"{output_path}/figures", exist_ok=True)
 
 ########
 # DATA #
 ########
+rng = np.random.default_rng(seed=args.seed)
 
-# As an example, the Gibbs state of TF-Ising model (label=0)
-# is taken to generate data (expectation values)
-target_label = 0
-target_params = np.array([4.0, 4.0])
-target_beta = 1.0
+# Initialize the Gibbs state of the target
+# by choosing some random parameters
+# as the coefficients of each hamiltonian operator
+target_ham_ops = hamiltonians.hamiltonian_operators(n_qubits, target_label)
+target_params = rng.normal(size=len(target_ham_ops))
+print(f"Target Hamiltonian label {target_label}")
+print(f"Model Hamiltonian label {model_label}")
+if target_label == model_label:
+    print(" -- no model mismatch")
+else:
+    print(" -- model mismatch")
 
 do_pretraining = pre_model_label is not None
 if do_pretraining:
@@ -120,7 +147,9 @@ for stage in stages:
     #############
 
     if do_pretraining and stage == "full-training":
-        pre_op_map = {k: v for k, v in zip(pre_model_ham_names, qbm_state.get_coeffs())}
+        pre_op_map = {
+            k: v for k, v in zip(pre_model_ham_names, qbm_state.get_coeffs())  # noqa: F821
+        }
         # initialize parameters from pre-training
         initial_params = []
         for op in model_ham_names:
@@ -178,17 +207,17 @@ for stage in stages:
         print(f"Initial relative entropy: {qre_hist[0]}")
         print(f"Trained relative entropy: {qre_hist[-1]}")
 
-    fig_name = f"TFIM_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}.png"  # noqa: E501
+    fig_name = f"t{target_label}_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}.png"  # noqa: E501
     if compute_qre:
         fig, ax = plt.subplots(figsize=(8, 8))
         ax.plot(qre_hist[1:], "-")
         ax.set_xlabel("Epoch")
         ax.set_ylabel("Relative entropy")
-        ax.set_yscale('log')
-        plt.savefig(f"data/figures/QRE_{fig_name}")
+        ax.set_yscale("log")
+        plt.savefig(f"{output_path}/figures/QRE_{fig_name}")
     fig, ax = plt.subplots(figsize=(8, 8))
     ax.plot(max_grads_hist[1:], "-")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Max absolute value of gradients")
-    ax.set_yscale('log')
-    plt.savefig(f"data/figures/MaxGrad_{fig_name}")
+    ax.set_yscale("log")
+    plt.savefig(f"{output_path}/figures/MaxGrad_{fig_name}")
