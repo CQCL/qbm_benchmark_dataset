@@ -206,27 +206,22 @@ for stage in stages:
     print(f"Training took {(end_time-start_time):.2f}s to run")
     print(f"Trained parameters: {qbm_state.get_coeffs()}")
     print(f"Max. gradients: {max_grads_hist[-1]}")
-    with open(f"{output_path}/results/Time_{exp_name}.txt", "w") as f:
-        f.write(str(end_time - start_time))
-    with open(f"{output_path}/results/Params_{exp_name}.txt", "w") as f:
-        f.writelines("\n".join([str(x) for x in qbm_state.get_coeffs()]))
-    with open(f"{output_path}/histories/MaxGrad_{exp_name}.txt", "w") as f:
-        f.writelines("\n".join([str(x) for x in max_grads_hist]))
-    if compute_qre:
-        print(f"Initial relative entropy: {qre_hist[0]}")
-        print(f"Trained relative entropy: {qre_hist[-1]}")
-        with open(f"{output_path}/histories/QRE_{exp_name}.txt", "w") as f:
-            f.writelines("\n".join([str(x) for x in qre_hist]))
-    if compute_qre:
-        fig, ax = plt.subplots(figsize=(8, 8))
-        ax.plot(qre_hist[1:], "-")
-        ax.set_xlabel("Epoch")
-        ax.set_ylabel("Relative entropy")
-        ax.set_yscale("log")
-        plt.savefig(f"{output_path}/figures/QRE_{exp_name}.png")
+    np.save(f"{output_path}/results/Time_{exp_name}.npy", end_time - start_time)
+    np.save(f"{output_path}/results/Params_{exp_name}.npy", qbm_state.get_coeffs())
+    np.save(f"{output_path}/histories/MaxGrad_{exp_name}.npy", max_grads_hist)
     fig, ax = plt.subplots(figsize=(8, 8))
     ax.plot(max_grads_hist[1:], "-")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Max absolute value of gradients")
     ax.set_yscale("log")
     plt.savefig(f"{output_path}/figures/MaxGrad_{exp_name}.png")
+    if compute_qre:
+        print(f"Initial relative entropy: {qre_hist[0]}")
+        print(f"Trained relative entropy: {qre_hist[-1]}")
+        np.save(f"{output_path}/histories/QRE_{exp_name}.npy", qre_hist)
+        fig, ax = plt.subplots(figsize=(8, 8))
+        ax.plot(qre_hist[1:], "-")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Relative entropy")
+        ax.set_yscale("log")
+        plt.savefig(f"{output_path}/figures/QRE_{exp_name}.png")
