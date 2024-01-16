@@ -203,6 +203,13 @@ for stage in stages:
     end_time = time()
 
     exp_name = f"t{target_label}_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}_sn{stringify(shot_noise_sigma)}_dn{stringify(depolarizing_noise)}"  # noqa: E501
+    if do_pretraining:
+        exp_name += f"_pre-qbm{pre_model_label}_pre-e{pre_epochs}_pre-lr{stringify(pre_learning_rate)}_"
+        if stage == "pretraining":
+            exp_name += "pre"
+        else:
+            exp_name += "full"
+    
     print(f"Training took {(end_time-start_time):.2f}s to run")
     print(f"Trained parameters: {qbm_state.get_coeffs()}")
     print(f"Max. gradients: {max_grads_hist[-1]}")
