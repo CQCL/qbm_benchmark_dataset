@@ -148,7 +148,8 @@ for stage in stages:
 
     if do_pretraining and stage == "full-training":
         pre_op_map = {
-            k: v for k, v in zip(pre_model_ham_names, qbm_state.get_coeffs())  # noqa: F821
+            k: v
+            for k, v in zip(pre_model_ham_names, qbm_state.get_coeffs())  # noqa: F821
         }
         # initialize parameters from pre-training
         initial_params = []
@@ -200,24 +201,32 @@ for stage in stages:
             target_eta=target_eta,
         )
     end_time = time()
+
+    exp_name = f"t{target_label}_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}_sn{stringify(shot_noise_sigma)}_dn{stringify(depolarizing_noise)}"  # noqa: E501
     print(f"Training took {(end_time-start_time):.2f}s to run")
     print(f"Trained parameters: {qbm_state.get_coeffs()}")
     print(f"Max. gradients: {max_grads_hist[-1]}")
+    with open(f"{output_path}/results/Time_{exp_name}.txt", "w") as f:
+        f.write(str(end_time - start_time))
+    with open(f"{output_path}/results/Params_{exp_name}.txt", "w") as f:
+        f.writelines("\n".join([str(x) for x in qbm_state.get_coeffs()]))
+    with open(f"{output_path}/histories/MaxGrad_{exp_name}.txt", "w") as f:
+        f.writelines("\n".join([str(x) for x in max_grads_hist]))
     if compute_qre:
         print(f"Initial relative entropy: {qre_hist[0]}")
         print(f"Trained relative entropy: {qre_hist[-1]}")
-
-    fig_name = f"t{target_label}_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}.png"  # noqa: E501
+        with open(f"{output_path}/histories/QRE_{exp_name}.txt", "w") as f:
+            f.writelines("\n".join([str(x) for x in qre_hist]))
     if compute_qre:
         fig, ax = plt.subplots(figsize=(8, 8))
         ax.plot(qre_hist[1:], "-")
         ax.set_xlabel("Epoch")
         ax.set_ylabel("Relative entropy")
         ax.set_yscale("log")
-        plt.savefig(f"{output_path}/figures/QRE_{fig_name}")
+        plt.savefig(f"{output_path}/figures/QRE_{exp_name}.png")
     fig, ax = plt.subplots(figsize=(8, 8))
     ax.plot(max_grads_hist[1:], "-")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Max absolute value of gradients")
     ax.set_yscale("log")
-    plt.savefig(f"{output_path}/figures/MaxGrad_{fig_name}")
+    plt.savefig(f"{output_path}/figures/MaxGrad_{exp_name}.png")
