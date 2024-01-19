@@ -90,6 +90,8 @@ pre_learning_rate = args.pre_lr
 pre_epochs = args.pre_e
 output_path = args.output
 os.makedirs(f"{output_path}/figures", exist_ok=True)
+os.makedirs(f"{output_path}/histories", exist_ok=True)
+os.makedirs(f"{output_path}/results", exist_ok=True)
 
 ########
 # DATA #
