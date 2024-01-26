@@ -1,4 +1,7 @@
 #!/bin/bash
+export OMP_NUM_THREADS=64
+target=0
+out="data/tfim"
 for n in 4 6 8 10
 do
 	for beta in 0.5 1 4 10 100
@@ -9,9 +12,9 @@ do
 			do
 				for model in 0 1 6 8
 				do
-					poetry run python script/benchmark.py --qre --t 1 --b $beta --n $n --l $model --dn $eps --sn $sigma
+					poetry run python script/benchmark.py --qre --t $target --b $beta --n $n --l $model --dn $eps --sn $sigma --output $out
 					if [ $model -eq 8 ]; then
-						poetry run python script/benchmark.py --qre --t 1 --b $beta --n $n --l $model --dn $eps --sn $sigma --pre_l 6
+						poetry run python script/benchmark.py --qre --t $target --b $beta --n $n --l $model --dn $eps --sn $sigma --pre_l 6 --output $out
 					fi
 				done
 			done
