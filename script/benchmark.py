@@ -93,7 +93,11 @@ os.makedirs(f"{output_path}/figures", exist_ok=True)
 os.makedirs(f"{output_path}/histories", exist_ok=True)
 os.makedirs(f"{output_path}/results", exist_ok=True)
 
-########
+if n_qubits > 10:
+    print("It will be expensive to compute the QRE at each step of the training.")
+    print("We only compute it at the beginning and at the end of training")
+    compute_qre = False
+
 # DATA #
 ########
 rng = np.random.default_rng(seed=args.seed)
@@ -211,7 +215,7 @@ for stage in stages:
             exp_name += "pre"
         else:
             exp_name += "full"
-    
+
     print(f"Training took {(end_time-start_time):.2f}s to run")
     print(f"Trained parameters: {qbm_state.get_coeffs()}")
     print(f"Max. gradients: {max_grads_hist[-1]}")
