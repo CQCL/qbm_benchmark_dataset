@@ -4,11 +4,11 @@ target=4
 out="data/1d_hubbard"
 for n in 4 6 8
 do
-	for beta in 0.5 1 4 10 100
+	for beta in 0.5 1 4
 	do
-		for sigma in 0 0.1 0.25
+		for sigma in 0 0.1
 		do
-			for eps in 0 0.001 0.01 0.1
+			for eps in 0 0.01
 			do
 				for model in 8
 				do
