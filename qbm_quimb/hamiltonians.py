@@ -234,10 +234,10 @@ def hamiltonian_operators(
             for i in range(n - 1):
                 for j in range(i + 1, n):
                     h_ops.append(qu.ikron(qu.pauli("Z"), dims, [i, j]))
-                    h_names.append(f"{k}_{i}_{j}")
+                    h_names.append(f"Z_{i}_{j}")
             for i in range(n):
                 h_ops.append(qu.ikron(qu.pauli("Z"), dims, [i]))
-                h_names.append(f"{k}_{i}")
+                h_names.append(f"Z_{i}")
 
     if return_names:
         return h_ops, h_names
