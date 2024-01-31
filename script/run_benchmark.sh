@@ -10,12 +10,12 @@ do
 		do
 			for eps in 0 0.01
 			do
-				for model in 5
+				for model in 8
 				do
 					poetry run python script/benchmark.py --qre --t $target --b $beta --n $n --l $model --dn $eps --sn $sigma --output $out
-					if [ $model -eq 8 ]; then
-						poetry run python script/benchmark.py --qre --t $target --b $beta --n $n --l $model --dn $eps --sn $sigma --pre_l 6 --output $out
-					fi
+					# if [ $model -eq 8 ]; then
+					# 	poetry run python script/benchmark.py --qre --t $target --b $beta --n $n --l $model --dn $eps --sn $sigma --pre_l 6 --output $out
+					# fi
 				done
 			done
 		done
