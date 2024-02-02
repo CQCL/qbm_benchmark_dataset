@@ -92,6 +92,7 @@ class QBM(GibbsState):
         """Compute quantum relative entropy between target (eta) and QBM states (rho),
         Tr[eta ln(eta) - eta ln(rho)].
 
+
         Args:
             eta (qu.qarray): A target density martix.
 
@@ -103,9 +104,12 @@ class QBM(GibbsState):
             h = 0
         else:
             eta_evals = qu.eigvalsh(eta).clip(1e-300)
+            # Tr[eta ln(eta)] = sum(eta_ev * ln(eta_ev))
             h = np.sum(eta_evals * np.log(eta_evals))
         ham = self.get_hamiltonian()
-        ham_evals = qu.eigvalsh(ham).clip(1e-300)
+        ham_evals = qu.eigvalsh(ham)
+        # -Tr[eta ln(rho)] = -Tr[eta ln(e^H/Z)]
+        # = -Tr[eta H + eta ln(Z)] = - Tr[eta H] - ln(Z)
         z = np.sum(np.exp(ham_evals))
         eta_stat = qu.expec(eta, ham)
         return h - eta_stat + qu.log(z)
