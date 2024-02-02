@@ -88,13 +88,15 @@ class QBM(GibbsState):
         """
         self.coeffs = self.coeffs - learning_rate * grads
 
-    def compute_qre(self, eta: qu.qarray) -> float:
+    def compute_qre(self, eta: qu.qarray, eta_evals: np.ndarray) -> float:
         """Compute quantum relative entropy between target (eta) and QBM states (rho),
         Tr[eta ln(eta) - eta ln(rho)].
-
+        It uses the eigenvalues of the target state (eta) that have been
+        pre-computed.
 
         Args:
             eta (qu.qarray): A target density martix.
+            eta_evals (np.ndarray): The eigenvalues of the target state
 
         Returns:
             float: Quantum relative entropy.
@@ -103,7 +105,6 @@ class QBM(GibbsState):
         if np.linalg.matrix_rank(eta.A) == 1:
             h = 0
         else:
-            eta_evals = qu.eigvalsh(eta).clip(1e-300)
             # Tr[eta ln(eta)] = sum(eta_ev * ln(eta_ev))
             h = np.sum(eta_evals * np.log(eta_evals))
         ham = self.get_hamiltonian()
@@ -124,6 +125,7 @@ def train_qbm(
     sigma: float = 0.0,
     compute_qre: bool = False,
     target_eta: Optional[qu.qarray] = None,
+    target_eta_ev: Optional[np.ndarray] = None,
 ) -> tuple[QBM, list[np.ndarray], list[float]]:
     """Training QBM given a list of target expectation values.
 
@@ -135,6 +137,7 @@ def train_qbm(
         eps (float, optional): Threshold gradient below which the training loop is terminated. Defaults to 1e-6.
         compute_qre (bool, optional): Compute relative entropy if True. Defaults to False.
         target_eta (Optional[qu.qarray], optional): Target state used to compute relative entropy if compute_qre is True. Defaults to None.
+        target_eta_ev (Optional[np.ndarray], optional): Target state eigenvalues for QRE if compute_qre is True. Defaults to None.
 
     Returns:
         QBM: The trained QBM.
@@ -143,11 +146,13 @@ def train_qbm(
     """  # noqa: E501
     max_grad_hist = []
     qre_hist = []
-
+    # initial QRE (always computed)
+    
+    qre_hist.append(qbm.compute_qre(target_eta, target_eta_ev))
     for _ in range(epochs):
         # quantum relative entropy
         if compute_qre:
-            qre_hist.append(qbm.compute_qre(target_eta))
+            qre_hist.append(qbm.compute_qre(target_eta, target_eta_ev))
 
         # grad and update
         grads = qbm.compute_grads(target_expects, sigma=sigma)
@@ -155,8 +160,7 @@ def train_qbm(
         qbm.update_params(grads, learning_rate)
         if max_grad_hist[-1] < eps:
             break
-
-    if compute_qre:
-        qre_hist.append(qbm.compute_qre(target_eta))
+    # final QRE (always computed)
+    qre_hist.append(qbm.compute_qre(target_eta, target_eta_ev))
 
     return qbm, max_grad_hist, qre_hist
