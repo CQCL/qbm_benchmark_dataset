@@ -118,7 +118,7 @@ else:
 
 do_pretraining = pre_model_label is not None
 if do_pretraining:
-    stages = ["pretraining", "full-training"]
+    stages = ["pre-training", "full-training"]
     _, model_ham_names_pre = hamiltonians.hamiltonian_operators(
         n_qubits, pre_model_label, return_names=True
     )
@@ -133,7 +133,7 @@ for stage in stages:
     print(f"stage: {stage}")
 
     # A list of operators in the model Hamiltonian
-    if stage == "pretraining":
+    if stage == "pre-training":
         model_ham_ops, pre_model_ham_names = hamiltonians.hamiltonian_operators(
             n_qubits, pre_model_label, return_names=True
         )
@@ -169,7 +169,11 @@ for stage in stages:
                     initial_params.append(0.0)
             except KeyError:
                 initial_params.append(0)
+    elif do_pretraining and stage == "pre-training":
+        # init from maximally mized state for pretraining
+        initial_params = np.zeros(shape=(len(model_ham_ops)))
     else:
+        # if no pretraining, start from random state
         initial_params = rng.normal(size=len(model_ham_ops))
     qbm_state = QBM(model_ham_ops, initial_params)
     print(f"Initial parameters: {qbm_state.get_coeffs()}")
@@ -185,7 +189,7 @@ for stage in stages:
     target_eta = target_state
     target_eta_ev = qu.eigvalsh(target_eta).clip(1e-300)
 
-    if stage == "pretraining":
+    if stage == "pre-training":
         qbm_state, max_grads_hist, qre_hist = training.train_qbm(
             qbm=qbm_state,
             target_expects=target_expects,
@@ -218,13 +222,14 @@ for stage in stages:
             + f"_pre-e{pre_epochs}"
             + f"_pre-lr{stringify(pre_learning_rate)}_"
         )
-        if stage == "pretraining":
+        if stage == "pre-training":
             exp_name += "pre"
         else:
             exp_name += "full"
 
     print(f"Training took {(end_time-start_time):.2f}s to run")
     print(f"Trained parameters: {qbm_state.get_coeffs()}")
+    print(f"Trained parameters (rescaled): {-qbm_state.get_coeffs()/target_beta}")
     print(f"Max. gradients: {max_grads_hist[-1]}")
     np.save(f"{output_path}/results/Time_{exp_name}.npy", end_time - start_time)
     np.save(f"{output_path}/results/ParamsTrue_{exp_name}.npy", target_params)
@@ -232,7 +237,7 @@ for stage in stages:
     np.save(f"{output_path}/histories/MaxGrad_{exp_name}.npy", max_grads_hist)
     # Plot gradients: difference in expectation values
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.plot(max_grads_hist[1:], "-")
+    ax.plot(max_grads_hist, "-")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Max absolute value of gradients")
     ax.set_yscale("log")
@@ -242,7 +247,7 @@ for stage in stages:
     print(f"Trained relative entropy: {qre_hist[-1]}")
     np.save(f"{output_path}/histories/QRE_{exp_name}.npy", qre_hist)
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.plot(qre_hist[1:], "-")
+    ax.plot(qre_hist, "-")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Relative entropy")
     ax.set_yscale("log")
