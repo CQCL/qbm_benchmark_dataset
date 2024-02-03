@@ -4,6 +4,7 @@ Benchmark a QBM on the Hamiltonian dataset
 import argparse
 import os
 import numpy as np
+import quimb as qu
 import matplotlib.pyplot as plt
 from time import time
 from qbm_quimb import hamiltonians, data, training
@@ -46,7 +47,7 @@ parser.add_argument(
 parser.add_argument(
     "--qre",
     action="store_true",
-    help="If we want to compute and output relative entropies",
+    help="If we want to compute and output relative entropies during training",
 )
 parser.add_argument(
     "--pre_l", type=int, default=None, help="Label of QBM model for pretraining (None)"
@@ -180,9 +181,8 @@ for stage in stages:
 
     start_time = time()
     print("Start training...")
-    target_eta = None
-    if compute_qre:
-        target_eta = target_state
+    target_eta = target_state
+    target_eta_ev = qu.eigvalsh(target_eta).clip(1e-300)
 
     if stage == "pretraining":
         qbm_state, max_grads_hist, qre_hist = training.train_qbm(
@@ -194,6 +194,7 @@ for stage in stages:
             sigma=shot_noise_sigma,
             compute_qre=compute_qre,
             target_eta=target_eta,
+            target_eta_ev=target_eta_ev,
         )
     else:
         qbm_state, max_grads_hist, qre_hist = training.train_qbm(
@@ -205,6 +206,7 @@ for stage in stages:
             sigma=shot_noise_sigma,
             compute_qre=compute_qre,
             target_eta=target_eta,
+            target_eta_ev=target_eta_ev,
         )
     end_time = time()
 
@@ -220,21 +222,23 @@ for stage in stages:
     print(f"Trained parameters: {qbm_state.get_coeffs()}")
     print(f"Max. gradients: {max_grads_hist[-1]}")
     np.save(f"{output_path}/results/Time_{exp_name}.npy", end_time - start_time)
+    np.save(f"{output_path}/results/ParamsTrue_{exp_name}.npy", target_params)
     np.save(f"{output_path}/results/Params_{exp_name}.npy", qbm_state.get_coeffs())
     np.save(f"{output_path}/histories/MaxGrad_{exp_name}.npy", max_grads_hist)
+    # Plot gradients: difference in expectation values
     fig, ax = plt.subplots(figsize=(8, 8))
     ax.plot(max_grads_hist[1:], "-")
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Max absolute value of gradients")
     ax.set_yscale("log")
     plt.savefig(f"{output_path}/figures/MaxGrad_{exp_name}.png")
-    if compute_qre:
-        print(f"Initial relative entropy: {qre_hist[0]}")
-        print(f"Trained relative entropy: {qre_hist[-1]}")
-        np.save(f"{output_path}/histories/QRE_{exp_name}.npy", qre_hist)
-        fig, ax = plt.subplots(figsize=(8, 8))
-        ax.plot(qre_hist[1:], "-")
-        ax.set_xlabel("Epoch")
-        ax.set_ylabel("Relative entropy")
-        ax.set_yscale("log")
-        plt.savefig(f"{output_path}/figures/QRE_{exp_name}.png")
+    # Plot QRE: training loss function
+    print(f"Initial relative entropy: {qre_hist[0]}")
+    print(f"Trained relative entropy: {qre_hist[-1]}")
+    np.save(f"{output_path}/histories/QRE_{exp_name}.npy", qre_hist)
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.plot(qre_hist[1:], "-")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Relative entropy")
+    ax.set_yscale("log")
+    plt.savefig(f"{output_path}/figures/QRE_{exp_name}.png")
