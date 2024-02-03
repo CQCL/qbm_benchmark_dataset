@@ -77,7 +77,7 @@ class QBM(GibbsState):
             qbm - targ + noise
             for (qbm, targ, noise) in zip(qbm_expects, target_expects, noises)
         ]
-        return np.array(grads)
+        return np.array(grads).real
 
     def update_params(self, grads: np.ndarray[float], learning_rate: float) -> None:
         """Update coefficients of Hamiltonian in QBM.
@@ -113,7 +113,7 @@ class QBM(GibbsState):
         # = -Tr[eta H + eta ln(Z)] = - Tr[eta H] - ln(Z)
         z = np.sum(np.exp(ham_evals))
         eta_stat = qu.expec(eta, ham)
-        return h - eta_stat + qu.log(z)
+        return h - np.real(eta_stat) + qu.log(z)
 
 
 def train_qbm(
@@ -149,17 +149,18 @@ def train_qbm(
     # initial QRE (always computed)
     qre_hist.append(qbm.compute_qre(target_eta, target_eta_ev))
     for _ in range(epochs):
-        # quantum relative entropy
-        if compute_qre:
-            qre_hist.append(qbm.compute_qre(target_eta, target_eta_ev))
-
         # grad and update
         grads = qbm.compute_grads(target_expects, sigma=sigma)
         max_grad_hist.append(np.max(np.abs(grads)))
         qbm.update_params(grads, learning_rate)
+        # quantum relative entropy
+        if compute_qre:
+            qre_hist.append(qbm.compute_qre(target_eta, target_eta_ev))
+        # stopping condition on gradients
         if max_grad_hist[-1] < eps:
             break
-    # final QRE (always computed)
-    qre_hist.append(qbm.compute_qre(target_eta, target_eta_ev))
+    if not compute_qre:
+        # final QRE  (computed if not during training)
+        qre_hist.append(qbm.compute_qre(target_eta, target_eta_ev))
 
     return qbm, max_grad_hist, qre_hist
