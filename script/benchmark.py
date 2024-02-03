@@ -6,10 +6,13 @@ import argparse
 import os
 import numpy as np
 import quimb as qu
+import matplotlib
 import matplotlib.pyplot as plt
 from time import time
 from qbm_quimb import hamiltonians, data, training
 from qbm_quimb.training import QBM
+
+matplotlib.use("Agg")
 
 
 def stringify(p: float):
