@@ -1,6 +1,7 @@
 """
 Benchmark a QBM on the Hamiltonian dataset
 """
+
 import argparse
 import os
 import numpy as np
@@ -25,7 +26,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument("--n", type=int, default=4, help="Number of qubits (4)")
 parser.add_argument("--t", type=int, default=0, help="Label of target model (0)")
 parser.add_argument(
-    "--b", type=float, default=1.0, help="Inverse temperature of target model (1.0)"
+    "--b", type=float, default=1.0, help="Inverse temperature of target state (1.0)"
 )
 parser.add_argument("--l", type=int, default=0, help="Label of QBM model (0)")
 parser.add_argument(
@@ -212,7 +213,11 @@ for stage in stages:
 
     exp_name = f"t{target_label}_beta{stringify(target_beta)}_q{n_qubits}_qbm{model_label}_e{epochs}_lr{stringify(learning_rate)}_sn{stringify(shot_noise_sigma)}_dn{stringify(depolarizing_noise)}"  # noqa: E501
     if do_pretraining:
-        exp_name += f"_pre-qbm{pre_model_label}_pre-e{pre_epochs}_pre-lr{stringify(pre_learning_rate)}_"
+        exp_name += (
+            f"_pre-qbm{pre_model_label}"
+            + f"_pre-e{pre_epochs}"
+            + f"_pre-lr{stringify(pre_learning_rate)}_"
+        )
         if stage == "pretraining":
             exp_name += "pre"
         else:
