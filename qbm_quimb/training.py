@@ -147,7 +147,6 @@ def train_qbm(
     max_grad_hist = []
     qre_hist = []
     # initial QRE (always computed)
-    
     qre_hist.append(qbm.compute_qre(target_eta, target_eta_ev))
     for _ in range(epochs):
         # quantum relative entropy
