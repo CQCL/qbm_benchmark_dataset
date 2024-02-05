@@ -172,12 +172,9 @@ for stage in stages:
                     initial_params.append(0.0)
             except KeyError:
                 initial_params.append(0)
-    elif do_pretraining and stage == "pre-training":
-        # init from maximally mized state for pretraining
-        initial_params = np.zeros(shape=(len(model_ham_ops)))
     else:
-        # if no pretraining, start from random state
-        initial_params = rng.normal(size=len(model_ham_ops))
+        # init from maximally mized state always
+        initial_params = np.zeros(shape=(len(model_ham_ops)))
     qbm_state = QBM(model_ham_ops, initial_params)
     print(f"Initial parameters: {qbm_state.get_coeffs()}")
     print(f"Target parameters: {target_params}")
