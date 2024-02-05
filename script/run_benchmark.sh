@@ -10,9 +10,10 @@ do
 		do
 			for dn in 0 0.001
 			do
-				for model in 0
+				for model in 6
 				do
-					poetry run python script/benchmark.py --qre --t $target --b $beta --n $n --l $model --lr 0.25 --dn $dn --sn $sn --output $out
+				        lr=$(echo "scale=5; 1/(2*$n*($n-1))" | bc -l)
+					poetry run python script/benchmark.py --qre --t $target --b $beta --n $n --l $model --lr $lr --dn $dn --sn $sn --output $out
 					# if [ $model -eq 8 ]; then
 					# 	poetry run python script/benchmark.py --qre --t $target --b $beta --n $n --l $model --pre_l 6 --output $out
 					# fi
