@@ -16,7 +16,7 @@ matplotlib.use("Agg")
 
 
 def stringify(p: float):
-    return str(p).replace(".", "-")
+    return str(round(p, 5)).replace(".", "-")
 
 
 ##########
