@@ -16,7 +16,7 @@ matplotlib.use("Agg")
 
 
 def stringify(p: float):
-    return str(p).replace(".", "-")
+    return str(round(p, 5)).replace(".", "-")
 
 
 ##########
@@ -35,7 +35,7 @@ parser.add_argument("--l", type=int, default=0, help="Label of QBM model (0)")
 parser.add_argument(
     "--dn", type=float, default=0.0, help="Intensity of depolarizing noise (0.0)"
 )
-parser.add_argument("--lr", type=float, default=0.01, help="Learning rate (0.01)")
+parser.add_argument("--lr", type=float, default=None, help="Learning rate (None)")
 parser.add_argument(
     "--e", type=int, default=1000, help="Number of traninig epochs (1000)"
 )
@@ -57,7 +57,7 @@ parser.add_argument(
     "--pre_l", type=int, default=None, help="Label of QBM model for pretraining (None)"
 )
 parser.add_argument(
-    "--pre_lr", type=float, default=0.01, help="Learning rate for pretraining (0.01)"
+    "--pre_lr", type=float, default=None, help="Learning rate for pretraining (None)"
 )
 parser.add_argument(
     "--pre_e",
@@ -128,6 +128,10 @@ if do_pretraining:
     _, model_ham_names_full = hamiltonians.hamiltonian_operators(
         n_qubits, model_label, return_names=True
     )
+    if pre_learning_rate is None:
+        pre_learning_rate = 1 / len(model_ham_names_pre)
+    if learning_rate is None:
+        learning_rate = 1 / (2 * len(model_ham_names_full))
     assert len(set(model_ham_names_pre) - set(model_ham_names_full)) == 0
 else:
     stages = ["full-training"]
@@ -144,6 +148,8 @@ for stage in stages:
         model_ham_ops, model_ham_names = hamiltonians.hamiltonian_operators(
             n_qubits, model_label, return_names=True
         )
+        if learning_rate is None:
+            learning_rate = 1 / (2 * len(model_ham_ops))
     target_expects, target_state = data.generate_data(
         n_qubits,
         target_label,
