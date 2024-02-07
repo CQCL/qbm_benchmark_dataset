@@ -1,7 +1,7 @@
 #!/bin/bash
-export OMP_NUM_THREADS=10
-target=4
-out="data/1d_hubbard"
+export OMP_NUM_THREADS=8
+target=3
+out="data/j1_j2"
 for n in 4 6 8
 do
 	for beta in 0.5 1 2 4
@@ -10,10 +10,10 @@ do
 		do
 			for dn in 0 0.001
 			do
-				for model in 6
+				for model in 8
 				do
 					poetry run python script/benchmark.py --qre --t $target --b $beta --n $n --l $model --dn $dn --sn $sn --output $out
-					if [ $model -eq 8 ]; then
+					if [ $model -eq 8 -a $sn -eq 0 -a $dn -eq 0 ]; then
 						poetry run python script/benchmark.py --qre --t $target --b $beta --n $n --l $model --pre_l 6 --output $out
 					fi
 				done
