@@ -1,8 +1,8 @@
 #!/bin/bash
 export OMP_NUM_THREADS=8
-target=5
-out="data/2d_hubbard"
-for n in 8
+target=4
+out="data/1d_hubbard"
+for n in 4 6 8
 do
 	for beta in 0.5 1 2 4
 	do
