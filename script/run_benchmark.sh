@@ -10,7 +10,7 @@ do
 		do
 			for dn in 0 0.001
 			do
-				for model in 6
+				for model in 8
 				do
 					poetry run python script/benchmark.py --qre --t $target --b $beta --n $n --l $model --dn $dn --sn $sn --output $out
 					# if [ $model -eq 8 -a $sn -eq 0 -a $dn -eq 0 ]; then
