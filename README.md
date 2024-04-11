@@ -33,3 +33,8 @@ options:
   --seed SEED      Seed for PRNG (1)
   --output OUTPUT  Output for data and figures (data/)
 ```
+
+## Cite
+
+This package is jointly developed by Panasonic and Quantinuum.
+If you use this code in your research, please cite it. 
