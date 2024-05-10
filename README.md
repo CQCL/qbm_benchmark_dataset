@@ -34,6 +34,18 @@ options:
   --output OUTPUT  Output for data and figures (data/)
 ```
 
+## Data
+
+The `data` folder includes already some results from training different QBMs on Gibbs states for 5 different Hamiltonians:
+
+* 1D Heisenberg model
+* 1D Hubbard model
+* 1D Transverse Field Ising model
+* 2D Hubbard model
+* J1-J2 spin glass model
+
+More information about the Hamiltonians can be found in the file [hamiltonians.py](qbm_quimb/hamiltonians.py).
+
 ## Cite
 
 This package is jointly developed by Panasonic and Quantinuum and distributed under Apache-2.0 license.
