@@ -22,13 +22,13 @@ options:
   --b B            Inverse temperature of target model (1.0)
   --l L            Label of QBM model (0)
   --dn DN          Intensity of depolarizing noise (0.0)
-  --lr LR          Learning rate (0.01)
+  --lr LR          Learning rate (None)
   --e E            Number of traninig epochs (1000)
   --er ER          Error tolerance for gradients (1e-6)
   --sn SN          Standard deviation of gaussian shot noise for computing gradients (0.0)
   --qre            If we want to compute and output relative entropies
   --pre_l PRE_L    Label of QBM model for pretraining (None)
-  --pre_lr PRE_LR  Learning rate for pretraining (0.01)
+  --pre_lr PRE_LR  Learning rate for pretraining (None)
   --pre_e PRE_E    Number of traninig epochs for pretraining (300)
   --seed SEED      Seed for PRNG (1)
   --output OUTPUT  Output for data and figures (data/)
@@ -36,5 +36,15 @@ options:
 
 ## Cite
 
-This package is jointly developed by Panasonic and Quantinuum.
-If you use this code in your research, please cite it. 
+This package is jointly developed by Panasonic and Quantinuum and distributed under Apache-2.0 license.
+If you use this code in your research, please cite it using the following:
+
+```bibtex
+@misc{qbm-benchmark-dataset-2024,
+  author = {Enrico Rinaldi, Yuta Kikuchi, Ryuji Sakata},
+  title = {Quantum Boltzmann Machine training and benchmarking dataset},
+  year = {2024},
+  note = {GitHub repository},
+  howpublished = {\url{https://github.com/CQCL/qbm_benchmark_dataset}},
+}
+```
